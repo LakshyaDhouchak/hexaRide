@@ -1,0 +1,39 @@
+CREATE TABLE IF NOT EXISTS users(
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(225) NOT NULL,
+    email VARCHAR(225) UNIQUE NOT NULL,
+    phone VARCHAR(20) UNIQUE NOT NULL,
+    password_hash VARCHAR(225) NOT NULL,
+    role ENUM('RIDER','DRIVER') NOT NULL,
+    rating DECIMAL(3,2) DEFAULT 5.0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS vehicles(
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    driver_id BIGINT UNIQUE NOT NULL,
+    vehicle_number VARCHAR(50) UNIQUE NOT NULL,
+    model VARCHAR(100) NOT NULL,
+    color VARCHAR(50),
+    vehicle_type ENUM('SEDAN','SUV','LUXURY','BIKE') NOT NULL,
+    FOREIGN KEY (driver_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS trips(
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    rider_id BIGINT NOT NULL,
+    driver_id BIGINT DEFAULT NULL,
+    status ENUM('REQUESTED','ACCEPTED','ARRIVED','IN_PROGRESS','COMPLETED','CANCELLED') NOT NULL,
+    pickup_lat DOUBLE NOT NULL,
+    pickup_lng DOUBLE NOT NULL,
+    dropoff_lat DOUBLE NOT NULL,
+    dropoff_lng DOUBLE NOT NULL,
+    fare DECIMAL(10,2),
+    distance_km DECIMAL(10,2),
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    started_at TIMESTAMP NULL,
+    completed_at TIMESTAMP NULL,
+    FOREIGN KEY (rider_id) REFERENCES users(id),
+    FOREIGN KEY (driver_id) REFERENCES users(id)
+
+);
