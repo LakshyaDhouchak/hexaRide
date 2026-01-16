@@ -14,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,8 +55,22 @@ public class Trip {
     private Double fare;
     private Double distanceKm;
 
-    private LocalDateTime requestedAt = LocalDateTime.now();
+    @Column(nullable = false , updatable = false)
+    private LocalDateTime requestedAt ;
     private LocalDateTime startedAt;
     private LocalDateTime completedAt;
+
+    // define the standard JPA LifeCycle hook
+    @PrePersist
+    protected void OnCreate(){
+        // define the condition
+        if(this.requestedAt == null){
+            this.requestedAt = LocalDateTime.now();
+        }
+        if(this.status == null){
+            this.status = TripStatus.REQUESTED;
+        }
+    }
+
 
 }
