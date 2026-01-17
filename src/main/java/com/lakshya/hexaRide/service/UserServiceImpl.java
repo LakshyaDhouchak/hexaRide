@@ -24,7 +24,7 @@ public class UserServiceImpl implements UserService {
     // define the properties
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private UserResponseDTO mapToResponseDTO(User user){
+    public UserResponseDTO mapToResponseDTO(User user){
         return UserResponseDTO.builder()
                 .id(user.getId())
                 .name(user.getName())
