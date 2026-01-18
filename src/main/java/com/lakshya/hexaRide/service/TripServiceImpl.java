@@ -39,7 +39,7 @@ public class TripServiceImpl implements TripService {
                 .fare(trip.getFare())
                 .startedAt(trip.getStartedAt())
                 .driver(trip.getDriver()!=null ? userService.mapToResponseDTO(trip.getDriver()) : null)
-                .rider(userService.mapToResponseDTO(trip.getDriver()))
+                .rider(userService.mapToResponseDTO(trip.getRider()))
                 .build();
     }
     private final List<TripStatus> activeStatuses = Arrays.asList(
