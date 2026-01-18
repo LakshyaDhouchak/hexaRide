@@ -49,24 +49,34 @@ public class TripServiceImpl implements TripService {
     @Transactional
     @Override
     public TripResponseDTO requestTrip(TripRequestDTO tripDTO) {
-        // define the condition
         User rider = userRepository.findById(tripDTO.getRiderId())
-                    .orElseThrow(()-> new ResourceNotFoundException("Rider not found with id: " + tripDTO.getRiderId()));
-        if(tripRepository.existsByRiderAndStatusIn(rider,activeStatuses)){
-            throw new InvalidCredentialException("You already have an active or pending ride request.");
-        }            
+                .orElseThrow(() -> new ResourceNotFoundException("Rider not found"));
+
+        if (tripRepository.existsByRiderAndStatusIn(rider, activeStatuses)) {
+            throw new InvalidCredentialException("You already have an active ride request.");
+        }
+
+        double distance = calculateHaversineDistance(
+                tripDTO.getPickupLat(), tripDTO.getPickupLng(),
+                tripDTO.getDropoffLat(), tripDTO.getDropoffLng()
+        );
+
+        double baseFare = 10.0;
+        double perKmRate = 2.0;
+        double calculatedFare = baseFare + (distance * perKmRate);
 
         Trip trip = Trip.builder()
-                    .rider(rider)
-                    .dropoffLat(tripDTO.getDropoffLat())
-                    .dropoffLng(tripDTO.getDropoffLng())
-                    .pickupLat(tripDTO.getPickupLat())
-                    .pickupLng(tripDTO.getPickupLng())
-                    .fare(tripDTO.getEstimatedFare())
-                    .status(TripStatus.REQUESTED)
-                    .build();
-        Trip savedTrip = tripRepository.save(trip);
-        return mapToResponseDTO(savedTrip);                      
+                .rider(rider)
+                .pickupLat(tripDTO.getPickupLat())
+                .pickupLng(tripDTO.getPickupLng())
+                .dropoffLat(tripDTO.getDropoffLat())
+                .dropoffLng(tripDTO.getDropoffLng())
+                .distanceKm(distance) 
+                .fare(calculatedFare)  
+                .status(TripStatus.REQUESTED)
+                .build();
+
+        return mapToResponseDTO(tripRepository.save(trip));
     }
 
     @Transactional
@@ -138,6 +148,20 @@ public class TripServiceImpl implements TripService {
     private Trip findTripById(Long id){
         return tripRepository.findById(id)
             .orElseThrow(()-> new ResourceNotFoundException("Trip not found with id: " + id));
+    }
+    private double calculateHaversineDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; 
+
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c; 
     }
     
 }
