@@ -10,6 +10,6 @@ import com.lakshya.hexaRide.entity.User;
 @Repository
 public interface UserRepository extends JpaRepository<User,Long> {
     // define the properties
-    Optional<User> existsByEmail(String email);
+    boolean existsByEmail(String email);
     Optional<User> findByEmail(String email);
 }
