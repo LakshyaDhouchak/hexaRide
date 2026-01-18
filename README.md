@@ -136,3 +136,55 @@ Where:
    ```bash
    git clone [https://github.com/lakshya/hexaRide.git](https://github.com/lakshya/hexaRide.git)
    mvn clean install
+
+## 💾 Database & Persistence
+
+HexaRide employs a dual-database strategy to balance ACID compliance with high-speed geospatial indexing.
+
+### 1. Relational Schema (MySQL)
+Managed via **Flyway Migrations**, the schema is designed for referential integrity.
+- **`users`**: Stores PII and roles.
+- **`vehicles`**: Linked 1:1 with drivers.
+- **`trips`**: Detailed audit log of every journey, including timestamps and finalized fares.
+
+
+
+### 2. In-Memory Store (Redis)
+Used for the "Hot Data" that changes every second.
+- **Data Structure**: `Sets`
+- **Key Pattern**: `HEXAGON:{h3_index}` -> Stores a list of active `driver_id`s in that specific cell.
+- **Lifecycle**: Each entry has a 60-second TTL. This ensures that if a driver's app crashes, they are automatically removed from the "Available" pool within a minute.
+
+---
+
+## 📡 WebSocket Telemetry Flow
+
+The real-time tracking is built on **STOMP** to provide a pub/sub model for location packets.
+
+| Component | Responsibility |
+| :--- | :--- |
+| **Broker** | Manages client connections at `/ws-ride`. |
+| **Inbound** | Drivers push coordinates to `/app/driver/location`. |
+| **Outbound** | Server broadcasts to `/topic/ride/{tripId}`. |
+
+
+
+---
+
+## ⚠️ Robust Exception Handling
+
+HexaRide implements a **Global Advice** pattern to ensure the frontend always receives a structured JSON error response instead of a raw stack trace.
+
+| Exception | HTTP Status | Scenario |
+| :--- | :--- | :--- |
+| `ResourceNotFoundException` | `404 Not Found` | Invalid User/Trip ID. |
+| `InvalidCredentialException` | `409 Conflict` | Driver trying to accept a ride while on another trip. |
+| `ResourceAlreadyExistsException` | `400 Bad Request` | Email or Vehicle Number already registered. |
+
+**Sample Error Response:**
+```json
+{
+  "timestamp": "2026-01-19T01:40:00Z",
+  "message": "Driver is already on another active trip.",
+  "status": 409
+}
