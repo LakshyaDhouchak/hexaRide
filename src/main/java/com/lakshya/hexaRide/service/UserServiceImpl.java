@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponseDTO signUp(UserCreateDTO userDTO) {
         // define the condition
-        if(userRepository.existsByEmail(userDTO.getEmail()) != null){
+        if(userRepository.existsByEmail(userDTO.getEmail())){
             throw new ResourceAlreadyExistsException("Account with email " + userDTO.getEmail() + " already exists.");
         }
         User user = User.builder()
