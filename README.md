@@ -93,3 +93,91 @@ Sample error response:
   "error": "CONFLICT",
   "timeStamp": "2026-01-19T12:00:00Z"
 }
+```
+
+---
+
+## 🛠 Project Setup & Quick Start
+
+Get the HexaRide service running on your local machine in minutes!
+
+### Build and Run
+
+1. **Clone the Repository:**
+    ```bash
+    git clone [https://github.com/LakshyaDhouchak/hexaRide.git](https://github.com/LakshyaDhouchak/hexaRide.git)
+    cd hexaRide
+    ```
+2. **Build and Start:**
+    ```bash
+    mvn clean install
+    mvn spring-boot:run  # Starts on http://localhost:8080
+    ```
+
+### ⚙️ Configuration Essentials
+
+Update your database and security settings in `src/main/resources/application.properties`.
+
+| Area | Key Properties | Default Values (Change These!) |
+| :--- | :--- | :--- |
+| **Database (MySQL)** | `spring.datasource.url` | `jdbc:mysql://localhost:3306/hexaride` |
+| | `spring.datasource.password` | `OwnDatabasePassword` |
+| **Redis** | `spring.data.redis.host` | `localhost` |
+| **Security (JWT)** | `jwt.secret` | `YourSecretKey` (Must be strong for production) |
+
+---
+
+## ⚙️ Database Architecture
+
+
+
+- ✅ **user**: Core entity for riders/drivers (ID, email (unique), hashedPassword, role (`RIDER`, `DRIVER`), aggregate ratings).
+- ✅ **vehicle**: Linked to drivers (ID, driver_id (unique), licensePlate, vehicleType, model).
+- ✅ **trip**: Journey records (ID, rider, driver, pickup/dropoff coords, fare, distance, status).
+- ⚡ **Redis Sets**: High-performance storage for active driver IDs indexed by **H3 Cell ID**.
+
+**Optimizations**: H3 Indexing replaces expensive SQL geospatial queries with $O(1)$ Redis lookups by mapping coordinates to discrete hexagonal cells.
+
+
+
+---
+
+## 🚀 Roadmap
+
+- 📱 **Mobile App Integration**: RESTful APIs ready for React Native or Flutter (Real-time tracking).
+- 📈 **Surge Pricing**: Dynamic fare multipliers based on real-time demand density in H3 cells.
+- 🔔 **Notification System**: Firebase Cloud Messaging (FCM) for ride updates and arrival alerts.
+- 🕒 **Scheduled Tasks**: Auto-canceling stale requests and cleaning expired Redis keys.
+- 💳 **Payments & Invoicing**: Stripe integration for automated transactions and PDF receipts.
+
+---
+
+## 🤝 Contributing
+
+- 1️⃣ **Fork** the repo.
+- 2️⃣ **Create Branch**: `git checkout -b feature/dynamic-pricing`.
+- 3️⃣ **Code & Test**: Follow Spring Boot patterns (DTOs, services); run `mvn test`.
+- 4️⃣ **Push & PR**: Open a Pull Request with details and test cases.
+
+---
+
+# 🏆 Loyalty Rewards System
+
+## 📘 Overview
+
+The **Loyalty Rewards System** is a gamification feature designed to boost engagement. Users earn points and badges for frequent riding, referrals, or choosing eco-friendly vehicles. It leverages the **Strategy Design Pattern** to separate reward evaluation from core trip processing.
+
+
+
+### 🎯 Purpose & Goals
+- 🔁 **Repeat Rides**: Points awarded for every completed kilometer.
+- 🔥 **Referral Growth**: Bonus rewards for inviting friends.
+- 🚗 **Driver Excellence**: Badges for high-rated drivers.
+- 🎉 **Milestones**: Unlock "Gold Status" after 50 lifetime trips.
+
+### 🧠 Strategy Pattern Design
+```java
+public interface RewardStrategy {
+    boolean evaluate(User user, Trip trip);  // Logic to check eligibility
+    Reward assign(User user);               // Logic to persist the reward
+}
